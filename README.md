@@ -1,2 +1,3 @@
-# DDoS---Daily-Dose-of-Software
-A platform for learning intermediate to advanced software engineering concepts, designed for software engineering students and technology enthusiasts.
+# DDoS — Daily Dose of Software
+
+A learning platform delivering practical, intermediate-to-advanced software engineering knowledge for aspiring developers and tech enthusiasts.
