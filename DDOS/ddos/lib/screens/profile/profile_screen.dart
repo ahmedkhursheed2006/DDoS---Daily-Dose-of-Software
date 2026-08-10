@@ -59,7 +59,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (shouldLogout == true && mounted) {
       await AuthService.deleteToken();
       if (!mounted) return;
-      Navigator.pushReplacementNamed(context, '/login');
+      Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
     }
   }
 

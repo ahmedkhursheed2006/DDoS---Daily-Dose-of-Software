@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/auth_service.dart';
 import '../../utils/constants.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -32,11 +33,12 @@ class _SignupScreenState extends State<SignupScreen> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
       await Future.delayed(const Duration(seconds: 2));
+      await AuthService.saveToken('fake_jwt_token');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Account created! Please login.')),
+          const SnackBar(content: Text('Account created! Welcome.')),
         );
-        Navigator.pop(context);
+        Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
       }
       setState(() => _isLoading = false);
     }
