@@ -177,4 +177,4 @@ All colors, typography, spacing, and theme tokens are centralized in `lib/utils/
 
 ---
 
-*Frontend implementation by Ahmed Khursheed — Excelerate Internship, 2026*
+*Frontend implementation by Rasool Bux — Excelerate Internship, 2026*
