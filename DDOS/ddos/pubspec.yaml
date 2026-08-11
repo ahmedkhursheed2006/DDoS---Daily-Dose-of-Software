@@ -1,5 +1,5 @@
 name: ddos
-description: "A new Flutter project."
+description: "DDoS - Daily Dose of Software. A Flutter learning app delivering bite-sized software knowledge."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev

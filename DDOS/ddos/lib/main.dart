@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'screens/splash_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/signup_screen.dart';
 import 'screens/main_screen.dart';
@@ -19,8 +20,9 @@ class MyApp extends StatelessWidget {
       navigatorKey: DioClient.navigatorKey,
       debugShowCheckedModeBanner: false,
       theme: AppConstants.lightTheme,
-      initialRoute: '/login',
+      initialRoute: '/splash',
       routes: {
+        '/splash': (context) => const SplashScreen(),
         '/login': (context) => const LoginScreen(),
         '/signup': (context) => const SignupScreen(),
         '/home': (context) => const MainScreen(),

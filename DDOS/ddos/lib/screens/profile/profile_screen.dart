@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 import '../../utils/constants.dart';
+import 'favorite_topics_screen.dart';
+import 'download_offline_screen.dart';
+import 'account_settings_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -342,7 +345,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Icons.chevron_right,
                       color: Color(0xFFDBC2B0),
                     ),
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const FavoriteTopicsScreen(),
+                        ),
+                      );
+                    },
                   ),
                   Divider(height: 1, indent: 20, endIndent: 20, color: Colors.grey.shade200),
 
@@ -373,7 +383,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Icons.chevron_right,
                       color: Color(0xFFDBC2B0),
                     ),
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const DownloadOfflineScreen(),
+                        ),
+                      );
+                    },
                   ),
                   Divider(height: 1, indent: 20, endIndent: 20, color: Colors.grey.shade200),
 
@@ -446,7 +463,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Icons.chevron_right,
                       color: Color(0xFFDBC2B0),
                     ),
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const AccountSettingsScreen(),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
