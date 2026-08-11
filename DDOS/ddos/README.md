@@ -6,7 +6,7 @@ A Flutter mobile application built as part of the **Excelerate Internship Progra
 
 ## 👤 Developer
 
-**Frontend Developer:** Ahmed Khursheed
+**Frontend Developer:** Rasool Bux
 **Scope:** Flutter Frontend (UI, navigation, local storage, API client)
 **Platform:** Android & iOS (Flutter cross-platform)
 
