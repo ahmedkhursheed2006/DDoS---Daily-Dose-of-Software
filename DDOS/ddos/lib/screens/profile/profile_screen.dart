@@ -15,6 +15,61 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _isWarmLightTheme = true;
 
+  final List<Map<String, dynamic>> _streakBadges = [
+    {
+      'name': '7-Day Flame',
+      'emoji': '🔥',
+      'subtitle': '7 Days Active',
+      'unlocked': true,
+      'color': const Color(0xFFFF9800),
+    },
+    {
+      'name': '30-Day Master',
+      'emoji': '🏆',
+      'subtitle': '30 Days Active',
+      'unlocked': true,
+      'color': const Color(0xFFFFC107),
+    },
+    {
+      'name': 'Fast Learner',
+      'emoji': '⚡',
+      'subtitle': '10 Topics Done',
+      'unlocked': true,
+      'color': const Color(0xFF00BCD4),
+    },
+    {
+      'name': 'Bug Hunter',
+      'emoji': '🐛',
+      'subtitle': '5 Quizzes Passed',
+      'unlocked': true,
+      'color': const Color(0xFF4CAF50),
+    },
+  ];
+
+  final List<Map<String, dynamic>> _savedPosts = [
+    {
+      'id': '1',
+      'title': 'Understanding Async/Await in Dart & Flutter',
+      'tag': 'Dart / Flutter',
+      'readTime': '4 min read',
+      'isSaved': true,
+    },
+    {
+      'id': '2',
+      'title': 'SOLID Principles Simplified for Junior Developers',
+      'tag': 'Architecture',
+      'readTime': '6 min read',
+      'isSaved': true,
+    },
+    {
+      'id': '3',
+      'title': 'REST vs GraphQL: Key Differences & When to Use Which',
+      'tag': 'Backend API',
+      'readTime': '5 min read',
+      'isSaved': true,
+    },
+  ];
+
   Future<void> _showLogoutDialog() async {
     final shouldLogout = await showDialog<bool>(
       context: context,
@@ -295,6 +350,245 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ],
                     ),
                   ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // ── Section 1: Streak Badges ─────────────────────────────────────
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Streak Badges',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppConstants.primaryText,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppConstants.primaryColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '${_streakBadges.where((b) => b['unlocked'] == true).length} Earned',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppConstants.primaryThemeColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 120,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _streakBadges.length,
+                    separatorBuilder: (context, index) => const SizedBox(width: 12),
+                    itemBuilder: (context, index) {
+                      final badge = _streakBadges[index];
+                      final Color badgeColor = badge['color'] as Color;
+                      return Container(
+                        width: 130,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppConstants.cardSurface,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.grey.shade200,
+                          ),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x0F8D4B00),
+                              blurRadius: 16,
+                              offset: Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: badgeColor.withValues(alpha: 0.12),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Text(
+                                badge['emoji'] as String,
+                                style: const TextStyle(fontSize: 22),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              badge['name'] as String,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: AppConstants.primaryText,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              badge['subtitle'] as String,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: AppConstants.secondaryColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // ── Section 2: Saved Posts ───────────────────────────────────────
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Saved Posts',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppConstants.primaryText,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const FavoriteTopicsScreen(),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        'See All',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: AppConstants.primaryThemeColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Column(
+                  children: List.generate(_savedPosts.length, (index) {
+                    final post = _savedPosts[index];
+                    final bool isSaved = post['isSaved'] as bool;
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: AppConstants.cardSurface,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Colors.grey.shade200,
+                        ),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x0F8D4B00),
+                            blurRadius: 16,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                      decoration: BoxDecoration(
+                                        color: AppConstants.primaryThemeColor.withValues(alpha: 0.1),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        post['tag'] as String,
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppConstants.primaryThemeColor,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Icon(
+                                      Icons.access_time,
+                                      size: 12,
+                                      color: AppConstants.secondaryColor,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      post['readTime'] as String,
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        color: AppConstants.secondaryColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  post['title'] as String,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppConstants.primaryText,
+                                    height: 1.3,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            icon: Icon(
+                              isSaved ? Icons.bookmark : Icons.bookmark_border,
+                              color: isSaved ? AppConstants.primaryThemeColor : AppConstants.secondaryColor,
+                              size: 22,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                post['isSaved'] = !isSaved;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
                 ),
               ],
             ),
