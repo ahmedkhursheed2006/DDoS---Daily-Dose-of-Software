@@ -6,7 +6,7 @@ A Flutter mobile application built as part of the **Excelerate Internship Progra
 
 ## 👤 Developer
 
-**Frontend Developer:** Ahmed Khursheed
+**Frontend Developer:** Rasool Bux
 **Scope:** Flutter Frontend (UI, navigation, local storage, API client)
 **Platform:** Android & iOS (Flutter cross-platform)
 
@@ -177,4 +177,4 @@ All colors, typography, spacing, and theme tokens are centralized in `lib/utils/
 
 ---
 
-*Frontend implementation by Ahmed Khursheed — Excelerate Internship, 2026*
+*Frontend implementation by Rasool Bux — Excelerate Internship, 2026*
