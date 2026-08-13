@@ -38,10 +38,9 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
-              await AuthService.deleteToken();
-              if (mounted) {
-                Navigator.pushReplacementNamed(context, '/login');
-              }
+              final navigator = Navigator.of(context);
+              await AuthService.logout(); // clears token + user data
+              navigator.pushReplacementNamed('/login');
             },
           ),
         ],

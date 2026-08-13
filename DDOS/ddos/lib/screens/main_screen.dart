@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/constants.dart';
+import 'home/home_screen.dart';
 import 'profile/profile_screen.dart';
 
 class MainScreen extends StatefulWidget {
@@ -13,16 +14,7 @@ class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 4; // Default to Profile tab as shown in Stitch
 
   final List<Widget> _screens = [
-    const Center(
-      child: Text(
-        'Home - Coming Soon',
-        style: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: AppConstants.secondaryText,
-        ),
-      ),
-    ),
+    const HomeScreen(),
     const Center(
       child: Text(
         'Explore - Coming Soon',

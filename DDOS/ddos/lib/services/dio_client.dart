@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'auth_service.dart';
+import '../utils/constants.dart';
 
 class DioClient {
   static final DioClient _instance = DioClient._internal();
@@ -14,7 +15,7 @@ class DioClient {
   DioClient._internal() {
     _dio = Dio(
       BaseOptions(
-        baseUrl: 'http://localhost:3000/api',
+        baseUrl: AppConstants.apiBaseUrl,
         connectTimeout: const Duration(seconds: 15),
         receiveTimeout: const Duration(seconds: 15),
         headers: {
@@ -40,8 +41,8 @@ class DioClient {
         },
         onError: (DioException error, handler) async {
           if (error.response?.statusCode == 401) {
-            debugPrint('[DioClient] Received 401 Unauthorized. Clearing token and redirecting to /login.');
-            await AuthService.deleteToken();
+            debugPrint('[DioClient] 401 Unauthorized — clearing auth and redirecting to /login.');
+            await AuthService.logout(); // clears token + user data
             navigatorKey.currentState?.pushNamedAndRemoveUntil('/login', (route) => false);
           }
           return handler.next(error);

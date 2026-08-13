@@ -115,7 +115,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
 
     if (shouldLogout == true && mounted) {
-      await AuthService.deleteToken();
+      await AuthService.logout(); // clears token + user data
       if (!mounted) return;
       Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
     }
