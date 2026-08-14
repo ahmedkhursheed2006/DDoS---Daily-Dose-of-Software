@@ -10,21 +10,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String? _userId;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadUser();
-  }
-
-  Future<void> _loadUser() async {
-    final id = await AuthService.getUserId();
-    setState(() {
-      _userId = id;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,14 +44,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: AppConstants.primaryText,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                _userId != null ? 'Logged in User ID: $_userId' : 'Daily Dose of Software',
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: AppConstants.secondaryText,
                 ),
               ),
             ],
