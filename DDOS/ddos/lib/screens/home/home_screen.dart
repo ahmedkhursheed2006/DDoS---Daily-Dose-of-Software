@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../services/auth_service.dart';
 import '../../utils/constants.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -19,16 +18,6 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: AppConstants.cardSurface,
         foregroundColor: AppConstants.primaryText,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              final navigator = Navigator.of(context);
-              await AuthService.logout(); // clears token + user data
-              navigator.pushReplacementNamed('/login');
-            },
-          ),
-        ],
       ),
       body: Center(
         child: Padding(
