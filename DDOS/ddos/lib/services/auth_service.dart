@@ -39,6 +39,7 @@ class AuthService {
   // ── Authentication API ─────────────────────────────────────────────────────
 
   /// Authenticates the user via POST /auth/login.
+  /// T5 response: { token: "...", user: { id, email, name, role } }  (root level)
   /// On success: saves JWT token and User to secure storage.
   /// On failure: rethrows the DioException for the caller to handle.
   static Future<void> login(String email, String password) async {
@@ -46,35 +47,38 @@ class AuthService {
       '/auth/login',
       data: {'email': email, 'password': password},
     );
-    await _persistAuthResponse(response);
+    await _persistLoginResponse(response);
     debugPrint('[AuthService] Login successful.');
   }
 
   /// Registers a new user via POST /auth/register.
-  /// On success: saves JWT token and User to secure storage.
-  /// On failure: rethrows the DioException for the caller to handle.
+  /// T5 response: { id, email, name, role, createdAt }  — NO token returned.
+  /// Strategy: create account, then auto-call login() to obtain the JWT.
   static Future<void> register(
       String name, String email, String password) async {
-    final response = await _authDio.post<Map<String, dynamic>>(
+    // Step 1: Create account (T5 returns user info only, no token)
+    await _authDio.post<Map<String, dynamic>>(
       '/auth/register',
       data: {'name': name, 'email': email, 'password': password},
     );
-    await _persistAuthResponse(response);
-    debugPrint('[AuthService] Registration successful.');
+    // Step 2: Immediately login to obtain and persist the JWT
+    await login(email, password);
+    debugPrint('[AuthService] Registration + auto-login successful.');
   }
 
-  /// Shared helper: extracts token + user from the API response and persists both.
-  static Future<void> _persistAuthResponse(
+  /// Persists JWT token and User from a T5 login response.
+  /// T5 contract: { token: String, user: { id, email, name, role } }  at root level.
+  static Future<void> _persistLoginResponse(
       Response<Map<String, dynamic>> response) async {
-    final payload = response.data?['data'];
-    if (payload == null) throw Exception('Unexpected server response.');
+    final body = response.data;
+    if (body == null) throw Exception('Unexpected server response.');
 
-    final token = payload['token']?.toString();
+    final token = body['token']?.toString();
     if (token == null || token.isEmpty) throw Exception('No token received.');
 
     await saveToken(token);
-    if (payload['user'] != null) {
-      await saveUser(User.fromJson(payload['user'] as Map<String, dynamic>));
+    if (body['user'] != null) {
+      await saveUser(User.fromJson(body['user'] as Map<String, dynamic>));
     }
   }
 

@@ -1,6 +1,6 @@
 // lib/models/user.dart
 // SDD: lib/models/ — data/domain models
-// Matches T5 API response: data.user from /auth/login and /auth/register
+// Maps T5 login response: { token, user: { id, name, email, role } }  (root level, no wrapper)
 
 class User {
   final String id;

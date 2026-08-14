@@ -56,8 +56,9 @@ class _LoginScreenState extends State<LoginScreen> {
     if (e.type == DioExceptionType.connectionError) {
       return 'Cannot reach the server. Check your network or server status.';
     }
+    // T5 uses 'error' field; fallback to 'message' for forward-compatibility
     final serverMsg = e.response?.data is Map
-        ? e.response?.data['message']?.toString()
+        ? (e.response?.data['error'] ?? e.response?.data['message'])?.toString()
         : null;
     if (serverMsg != null && serverMsg.isNotEmpty) return serverMsg;
     switch (e.response?.statusCode) {

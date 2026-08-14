@@ -67,12 +67,14 @@ class _SignupScreenState extends State<SignupScreen> {
     if (e.type == DioExceptionType.connectionError) {
       return 'Cannot reach the server. Check your network or server status.';
     }
+    // T5 uses 'error' field; fallback to 'message' for forward-compatibility
     final serverMsg = e.response?.data is Map
-        ? e.response?.data['message']?.toString()
+        ? (e.response?.data['error'] ?? e.response?.data['message'])?.toString()
         : null;
     if (serverMsg != null && serverMsg.isNotEmpty) return serverMsg;
     switch (e.response?.statusCode) {
-      case 400: return 'Invalid request. Please check your details.';
+      // T5 returns 400 for both invalid input AND duplicate email
+      case 400: return 'Registration failed. Check your details or email may already be registered.';
       case 409: return 'An account with this email already exists.';
       case 422: return 'Validation failed. Please check your input.';
       case 500: return 'Server error. Please try again later.';
