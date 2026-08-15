@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -65,9 +66,16 @@ class _SplashScreenState extends State<SplashScreen>
 
     // Start the animation, then navigate after a comfortable hold.
     _controller.forward().then((_) {
-      Future.delayed(const Duration(milliseconds: 600), () {
+      Future.delayed(const Duration(milliseconds: 600), () async {
         if (mounted) {
-          Navigator.pushReplacementNamed(context, '/login');
+          final token = await AuthService.getToken();
+          if (mounted) {
+            if (token != null && token.trim().isNotEmpty) {
+              Navigator.pushReplacementNamed(context, '/home');
+            } else {
+              Navigator.pushReplacementNamed(context, '/login');
+            }
+          }
         }
       });
     });

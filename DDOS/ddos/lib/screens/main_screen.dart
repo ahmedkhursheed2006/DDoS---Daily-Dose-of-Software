@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/constants.dart';
+import 'home/home_screen.dart';
 import 'profile/profile_screen.dart';
 import 'explore/explore_screen.dart';
 
@@ -11,22 +12,11 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _selectedIndex = 4; // Default to Profile tab as shown in Stitch
+  int _selectedIndex = 4;
 
   final List<Widget> _screens = [
-    const Center(
-      child: Text(
-        'Home - Coming Soon',
-        style: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: AppConstants.secondaryText,
-        ),
-      ),
-    ),
-
+    const HomeScreen(),
     const ExploreScreen(),
-
     const Center(
       child: Text(
         'Daily Dose - Coming Soon',
@@ -67,7 +57,9 @@ class _MainScreenState extends State<MainScreen> {
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: AppConstants.cardSurface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(16),
+          ),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.04),

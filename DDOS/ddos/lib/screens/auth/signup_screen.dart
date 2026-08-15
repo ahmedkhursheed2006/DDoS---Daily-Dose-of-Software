@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 import '../../services/auth_service.dart';
 import '../../utils/constants.dart';
 
@@ -32,16 +33,67 @@ class _SignupScreenState extends State<SignupScreen> {
   void _signup() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-      await Future.delayed(const Duration(seconds: 2));
-      await AuthService.saveToken('fake_jwt_token');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Account created! Welcome.')),
+      try {
+        // AuthService owns the full register flow:
+        // POST /auth/register → parse response → persist token + user
+        await AuthService.register(
+          _nameController.text.trim(),
+          _emailController.text.trim(),
+          _passwordController.text,
         );
-        Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Account created! Welcome.')),
+          );
+          Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+        }
+      } on DioException catch (e) {
+        if (mounted) _showErrorSnackBar(_extractDioError(e));
+      } catch (e) {
+        if (mounted) _showErrorSnackBar('An unexpected error occurred. Please try again.');
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
       }
-      setState(() => _isLoading = false);
     }
+  }
+
+  /// Converts a DioException into a user-friendly message.
+  String _extractDioError(DioException e) {
+    if (e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.receiveTimeout ||
+        e.type == DioExceptionType.sendTimeout) {
+      return 'Connection timed out. Please check your network.';
+    }
+    if (e.type == DioExceptionType.connectionError) {
+      return 'Cannot reach the server. Check your network or server status.';
+    }
+    // T5 uses 'error' field; fallback to 'message' for forward-compatibility
+    final serverMsg = e.response?.data is Map
+        ? (e.response?.data['error'] ?? e.response?.data['message'])?.toString()
+        : null;
+    if (serverMsg != null && serverMsg.isNotEmpty) return serverMsg;
+    switch (e.response?.statusCode) {
+      // T5 returns 400 for both invalid input AND duplicate email
+      case 400: return 'Registration failed. Check your details or email may already be registered.';
+      case 409: return 'An account with this email already exists.';
+      case 422: return 'Validation failed. Please check your input.';
+      case 500: return 'Server error. Please try again later.';
+      default:  return 'Network error. Please try again.';
+    }
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.redAccent,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    );
   }
 
   @override

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../services/auth_service.dart';
 import '../../utils/constants.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -10,21 +9,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String? _userId;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadUser();
-  }
-
-  Future<void> _loadUser() async {
-    final id = await AuthService.getUserId();
-    setState(() {
-      _userId = id;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,17 +18,6 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: AppConstants.cardSurface,
         foregroundColor: AppConstants.primaryText,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await AuthService.deleteToken();
-              if (mounted) {
-                Navigator.pushReplacementNamed(context, '/login');
-              }
-            },
-          ),
-        ],
       ),
       body: Center(
         child: Padding(
@@ -60,14 +33,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: AppConstants.primaryText,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                _userId != null ? 'Logged in User ID: $_userId' : 'Daily Dose of Software',
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: AppConstants.secondaryText,
                 ),
               ),
             ],
