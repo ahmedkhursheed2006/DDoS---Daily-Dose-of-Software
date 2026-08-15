@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../utils/constants.dart';
 import 'profile/profile_screen.dart';
+import 'explore/explore_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -23,16 +24,9 @@ class _MainScreenState extends State<MainScreen> {
         ),
       ),
     ),
-    const Center(
-      child: Text(
-        'Explore - Coming Soon',
-        style: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: AppConstants.secondaryText,
-        ),
-      ),
-    ),
+
+    const ExploreScreen(),
+
     const Center(
       child: Text(
         'Daily Dose - Coming Soon',
