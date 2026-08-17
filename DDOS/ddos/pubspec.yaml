@@ -52,6 +52,7 @@ dependencies:
   
   # Date/Time formatting
   intl: ^0.18.1
+  image_picker: ^1.2.3
 
 
 dev_dependencies:

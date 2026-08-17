@@ -14,6 +14,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/user.dart';
 import '../utils/constants.dart';
+import '../utils/avatar_helper.dart';
 
 class AuthService {
   static const _storage = FlutterSecureStorage();
@@ -78,7 +79,17 @@ class AuthService {
 
     await saveToken(token);
     if (body['user'] != null) {
-      await saveUser(User.fromJson(body['user'] as Map<String, dynamic>));
+      var user = User.fromJson(body['user'] as Map<String, dynamic>);
+      final userKey = user.email.isNotEmpty ? user.email : user.id;
+      final savedAvatar = await AvatarHelper.getSavedAvatar(userKey);
+      if (savedAvatar != null && savedAvatar.isNotEmpty) {
+        user = user.copyWith(avatarPath: savedAvatar);
+      } else {
+        final defaultAvatar = AvatarHelper.getRandomDefaultAvatarId(userKey);
+        user = user.copyWith(avatarPath: defaultAvatar);
+        await AvatarHelper.saveAvatar(userKey, defaultAvatar);
+      }
+      await saveUser(user);
     }
   }
 
@@ -162,11 +173,19 @@ class AuthService {
 
   // ── User Data ─────────────────────────────────────────────────────────────
 
-  /// Persists the User object to secure storage as JSON.
+  /// Reactive notifier for real-time UI synchronization across screens
+  static final ValueNotifier<User?> userNotifier = ValueNotifier<User?>(null);
+
+  /// Persists the User object to secure storage as JSON and notifies listeners.
   static Future<void> saveUser(User user) async {
     try {
+      final userKey = user.email.isNotEmpty ? user.email : user.id;
+      if (user.avatarPath != null && user.avatarPath!.isNotEmpty) {
+        await AvatarHelper.saveAvatar(userKey, user.avatarPath!);
+      }
       await _storage.write(key: _userKey, value: jsonEncode(user.toJson()));
-      debugPrint('[AuthService] User saved: ${user.email}');
+      userNotifier.value = user;
+      debugPrint('[AuthService] User saved: ${user.email}, avatar: ${user.avatarPath}');
     } catch (e, stackTrace) {
       debugPrint('[AuthService] Error saving user: $e\n$stackTrace');
     }
@@ -176,8 +195,28 @@ class AuthService {
   static Future<User?> getUser() async {
     try {
       final data = await _storage.read(key: _userKey);
-      if (data == null) return null;
-      return User.fromJson(jsonDecode(data) as Map<String, dynamic>);
+      if (data == null) {
+        userNotifier.value = null;
+        return null;
+      }
+      var user = User.fromJson(jsonDecode(data) as Map<String, dynamic>);
+      final userKey = user.email.isNotEmpty ? user.email : user.id;
+
+      // Assign or restore avatar if not yet set
+      if (user.avatarPath == null || user.avatarPath!.isEmpty) {
+        final savedAvatar = await AvatarHelper.getSavedAvatar(userKey);
+        if (savedAvatar != null && savedAvatar.isNotEmpty) {
+          user = user.copyWith(avatarPath: savedAvatar);
+        } else {
+          final defaultAvatar = AvatarHelper.getRandomDefaultAvatarId(userKey);
+          user = user.copyWith(avatarPath: defaultAvatar);
+          await AvatarHelper.saveAvatar(userKey, defaultAvatar);
+        }
+        await _storage.write(key: _userKey, value: jsonEncode(user.toJson()));
+      }
+
+      userNotifier.value = user;
+      return user;
     } catch (e, stackTrace) {
       debugPrint('[AuthService] Error reading user: $e\n$stackTrace');
       return null;
@@ -188,6 +227,7 @@ class AuthService {
   static Future<void> clearUser() async {
     try {
       await _storage.delete(key: _userKey);
+      userNotifier.value = null;
       debugPrint('[AuthService] User data cleared.');
     } catch (e, stackTrace) {
       debugPrint('[AuthService] Error clearing user: $e\n$stackTrace');
@@ -203,3 +243,5 @@ class AuthService {
     debugPrint('[AuthService] Full logout complete — token and user data cleared.');
   }
 }
+
+

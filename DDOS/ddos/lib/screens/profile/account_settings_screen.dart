@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../models/user.dart';
 import '../../services/auth_service.dart';
 import '../../utils/constants.dart';
+import '../../utils/avatar_helper.dart';
+
 
 class AccountSettingsScreen extends StatefulWidget {
   const AccountSettingsScreen({super.key});
@@ -14,11 +17,27 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   User? _currentUser;
   bool _pushNotifications = true;
   bool _isLoadingUser = true;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
     super.initState();
     _loadUserData();
+    AuthService.userNotifier.addListener(_onUserUpdated);
+  }
+
+  void _onUserUpdated() {
+    if (mounted) {
+      setState(() {
+        _currentUser = AuthService.userNotifier.value;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    AuthService.userNotifier.removeListener(_onUserUpdated);
+    super.dispose();
   }
 
   Future<void> _loadUserData() async {
@@ -29,6 +48,382 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
         _isLoadingUser = false;
       });
     }
+  }
+
+  Future<void> _pickAvatarFromGallery() async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null && mounted) {
+        final user = _currentUser ?? const User(id: '', name: '', email: '');
+        final updatedUser = user.copyWith(avatarPath: pickedFile.path);
+
+        await AuthService.saveUser(updatedUser);
+        if (mounted) {
+          setState(() {
+            _currentUser = updatedUser;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Avatar updated from gallery!'),
+              backgroundColor: AppConstants.primaryColor,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('[AccountSettings] Error picking avatar from gallery: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to open gallery: $e'),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _pickAvatarFromCamera() async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null && mounted) {
+        final user = _currentUser ?? const User(id: '', name: '', email: '');
+        final updatedUser = user.copyWith(avatarPath: pickedFile.path);
+
+        await AuthService.saveUser(updatedUser);
+        if (mounted) {
+          setState(() {
+            _currentUser = updatedUser;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Photo avatar updated!'),
+              backgroundColor: AppConstants.primaryColor,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('[AccountSettings] Error taking photo: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to open camera: $e'),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showPresetAvatarPicker() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppConstants.cardSurface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const Text(
+                  'Pick a Default Avatar',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppConstants.primaryText,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Choose one of our curated developer avatars',
+                  style: TextStyle(fontSize: 13, color: AppConstants.secondaryText),
+                ),
+                const SizedBox(height: 20),
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 4,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                    childAspectRatio: 0.82,
+                  ),
+                  itemCount: AvatarHelper.defaultAvatars.length,
+                  itemBuilder: (_, index) {
+                    final preset = AvatarHelper.defaultAvatars[index];
+                    final isSelected = _currentUser?.avatarPath == preset.id;
+
+                    return GestureDetector(
+                      onTap: () async {
+                        Navigator.pop(ctx);
+                        final user = _currentUser ?? const User(id: '', name: '', email: '');
+                        final updatedUser = user.copyWith(avatarPath: preset.id);
+                        await AuthService.saveUser(updatedUser);
+                        if (mounted) {
+                          setState(() {
+                            _currentUser = updatedUser;
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Avatar changed to ${preset.label}!'),
+                              backgroundColor: AppConstants.primaryColor,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        }
+                      },
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isSelected ? AppConstants.primaryColor : Colors.transparent,
+                                width: 2.5,
+                              ),
+                            ),
+                            child: Container(
+                              width: 52,
+                              height: 52,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: LinearGradient(
+                                  colors: preset.gradientColors,
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: preset.primaryColor.withValues(alpha: 0.3),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: Center(
+                                child: Text(
+                                  preset.emoji,
+                                  style: const TextStyle(fontSize: 24),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            preset.label,
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                              color: isSelected ? AppConstants.primaryThemeColor : AppConstants.primaryText,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _randomizeDefaultAvatar() async {
+    final user = _currentUser ?? const User(id: '', name: '', email: '');
+    final newDefault = AvatarHelper.getRandomDefaultAvatarId();
+    final updatedUser = user.copyWith(avatarPath: newDefault);
+    await AuthService.saveUser(updatedUser);
+    if (mounted) {
+      setState(() {
+        _currentUser = updatedUser;
+      });
+      final preset = AvatarHelper.getPreset(newDefault);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Avatar randomized to ${preset?.label ?? 'New Avatar'}!'),
+          backgroundColor: AppConstants.primaryColor,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  void _showAvatarOptionsModal() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppConstants.cardSurface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const Text(
+                  'Change Profile Avatar',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppConstants.primaryText,
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Option 1: Pick a Default Preset Avatar
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppConstants.primaryColor.withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.face_retouching_natural, color: AppConstants.primaryColor),
+                  ),
+                  title: const Text(
+                    'Pick a Default Avatar',
+                    style: TextStyle(fontWeight: FontWeight.w600, color: AppConstants.primaryText),
+                  ),
+                  subtitle: const Text(
+                    'Choose from 8 curated developer avatars',
+                    style: TextStyle(fontSize: 12, color: AppConstants.secondaryText),
+                  ),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _showPresetAvatarPicker();
+                  },
+                ),
+                const Divider(height: 1, indent: 64),
+
+                // Option 2: Choose from Gallery
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF00BCD4).withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.photo_library_outlined, color: Color(0xFF0097A7)),
+                  ),
+                  title: const Text(
+                    'Choose from Gallery',
+                    style: TextStyle(fontWeight: FontWeight.w600, color: AppConstants.primaryText),
+                  ),
+                  subtitle: const Text(
+                    'Select a picture from your device gallery',
+                    style: TextStyle(fontSize: 12, color: AppConstants.secondaryText),
+                  ),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _pickAvatarFromGallery();
+                  },
+                ),
+                const Divider(height: 1, indent: 64),
+
+                // Option 3: Take Photo
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF4CAF50).withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.camera_alt_outlined, color: Color(0xFF388E3C)),
+                  ),
+                  title: const Text(
+                    'Take Photo',
+                    style: TextStyle(fontWeight: FontWeight.w600, color: AppConstants.primaryText),
+                  ),
+                  subtitle: const Text(
+                    'Use your camera to snap a new photo',
+                    style: TextStyle(fontSize: 12, color: AppConstants.secondaryText),
+                  ),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _pickAvatarFromCamera();
+                  },
+                ),
+                const Divider(height: 1, indent: 64),
+
+                // Option 4: Randomize
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFF9800).withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.casino_outlined, color: Color(0xFFF57C00)),
+                  ),
+                  title: const Text(
+                    'Randomize Default Avatar',
+                    style: TextStyle(fontWeight: FontWeight.w600, color: AppConstants.primaryText),
+                  ),
+                  subtitle: const Text(
+                    'Assign a random default avatar',
+                    style: TextStyle(fontSize: 12, color: AppConstants.secondaryText),
+                  ),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _randomizeDefaultAvatar();
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   void _showEditProfileDialog() {
@@ -122,15 +517,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                         name: '',
                         email: '',
                       );
-                  final updatedUser = User(
-                    id: user.id,
-                    name: newName,
-                    email: user.email,
-                    role: user.role,
-                    streakDays: user.streakDays,
-                    conceptsMastered: user.conceptsMastered,
-                    accuracy: user.accuracy,
-                  );
+                  final updatedUser = user.copyWith(name: newName);
 
                   await AuthService.saveUser(updatedUser);
                   if (mounted) {
@@ -142,7 +529,11 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                     Navigator.pop(dialogContext);
                   }
                   messenger.showSnackBar(
-                    const SnackBar(content: Text('Profile updated successfully.')),
+                    const SnackBar(
+                      content: Text('Profile updated successfully.'),
+                      backgroundColor: AppConstants.primaryColor,
+                      behavior: SnackBarBehavior.floating,
+                    ),
                   );
                 }
               },
@@ -284,6 +675,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text('Password update feature will be available soon.'),
+                          backgroundColor: AppConstants.primaryColor,
                         ),
                       );
                     }
@@ -300,6 +692,12 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final userName = (_currentUser?.name.isNotEmpty == true)
+        ? _currentUser!.name
+        : ((_currentUser?.email.isNotEmpty == true)
+            ? _currentUser!.email.split('@')[0]
+            : 'Learner');
+
     return Scaffold(
       backgroundColor: AppConstants.backgroundCanvas,
       appBar: AppBar(
@@ -325,7 +723,106 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
           : ListView(
               padding: const EdgeInsets.all(20.0),
               children: [
-                // Section Card
+                // Avatar & Profile Header Card
+                Container(
+                  padding: const EdgeInsets.all(20.0),
+                  margin: const EdgeInsets.only(bottom: 20.0),
+                  decoration: BoxDecoration(
+                    color: AppConstants.cardSurface,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      Stack(
+                        alignment: Alignment.bottomRight,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppConstants.primaryThemeColor,
+                                  Color(0xFFDBC2B0),
+                                ],
+                                begin: Alignment.bottomLeft,
+                                end: Alignment.topRight,
+                              ),
+                            ),
+                            child: AvatarHelper.buildAvatar(
+                              avatarPath: _currentUser?.avatarPath,
+                              name: userName,
+                              radius: 46,
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: _showAvatarOptionsModal,
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: AppConstants.primaryColor,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white, width: 2),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.15),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.camera_alt,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      Text(
+                        userName,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: AppConstants.primaryText,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _currentUser?.email ?? '',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: AppConstants.secondaryText,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      OutlinedButton.icon(
+                        onPressed: _showAvatarOptionsModal,
+                        icon: const Icon(Icons.photo_library_outlined, size: 16),
+                        label: const Text('Change Avatar', style: TextStyle(fontSize: 13)),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppConstants.primaryThemeColor,
+                          side: const BorderSide(color: AppConstants.primaryThemeColor),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Settings Section Card
                 Container(
                   decoration: BoxDecoration(
                     color: AppConstants.cardSurface,
@@ -379,7 +876,44 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                       ),
                       const Divider(height: 1, indent: 64, endIndent: 20),
 
-                      // 2. Change Password Tile
+                      // 2. Change Avatar Tile
+                      ListTile(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                        leading: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF4CAF50).withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.add_photo_alternate_outlined,
+                            color: Color(0xFF388E3C),
+                          ),
+                        ),
+                        title: const Text(
+                          'Change Avatar',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: AppConstants.primaryText,
+                          ),
+                        ),
+                        subtitle: const Text(
+                          'Choose preset, gallery photo, or take a picture',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppConstants.secondaryText,
+                          ),
+                        ),
+                        trailing: const Icon(
+                          Icons.chevron_right,
+                          color: AppConstants.secondaryColor,
+                        ),
+                        onTap: _showAvatarOptionsModal,
+                      ),
+                      const Divider(height: 1, indent: 64, endIndent: 20),
+
+                      // 3. Change Password Tile
                       ListTile(
                         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                         leading: Container(
@@ -416,7 +950,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                       ),
                       const Divider(height: 1, indent: 64, endIndent: 20),
 
-                      // 3. Notifications Tile
+                      // 4. Notifications Tile
                       ListTile(
                         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                         leading: Container(

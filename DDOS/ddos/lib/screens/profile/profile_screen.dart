@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../models/user.dart';
 import '../../services/auth_service.dart';
 import '../../utils/constants.dart';
+import '../../utils/avatar_helper.dart';
 import 'favorite_topics_screen.dart';
 import 'download_offline_screen.dart';
 import 'account_settings_screen.dart';
@@ -14,6 +16,37 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _isWarmLightTheme = true;
+  User? _currentUser;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+    AuthService.userNotifier.addListener(_onUserUpdated);
+  }
+
+  void _onUserUpdated() {
+    if (mounted) {
+      setState(() {
+        _currentUser = AuthService.userNotifier.value;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    AuthService.userNotifier.removeListener(_onUserUpdated);
+    super.dispose();
+  }
+
+  Future<void> _loadUserData() async {
+    final user = await AuthService.getUser();
+    if (mounted) {
+      setState(() {
+        _currentUser = user;
+      });
+    }
+  }
 
   final List<Map<String, dynamic>> _streakBadges = [
     {
@@ -123,6 +156,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final userName = (_currentUser?.name.isNotEmpty == true)
+        ? _currentUser!.name
+        : ((_currentUser?.email.isNotEmpty == true)
+            ? _currentUser!.email.split('@')[0]
+            : 'Learner');
+
+    final userEmail = _currentUser?.email ?? '';
+
+    final memberYear = _currentUser?.createdAt != null && _currentUser!.createdAt!.isNotEmpty
+        ? (DateTime.tryParse(_currentUser!.createdAt!)?.year.toString() ?? '2026')
+        : '2026';
+
+    final memberSinceText = 'Member since $memberYear';
+
+    final streakDays = _currentUser?.streakDays ?? 0;
+    final totalPoints = ((_currentUser?.conceptsMastered ?? 0) * 50) + ((_currentUser?.streakDays ?? 0) * 10);
+    final pointsDisplay = totalPoints >= 1000 ? '${(totalPoints / 1000).toStringAsFixed(1)}k' : '$totalPoints';
+
     return Scaffold(
       backgroundColor: AppConstants.backgroundCanvas,
       appBar: AppBar(
@@ -151,62 +202,81 @@ class _ProfileScreenState extends State<ProfileScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
         child: Column(
           children: [
-            // User Avatar Section
+            // User Avatar & Profile Info Section
             Center(
               child: Column(
                 children: [
-                  Stack(
-                    alignment: Alignment.bottomRight,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(3),
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            colors: [
-                              AppConstants.primaryThemeColor,
-                              Color(0xFFDBC2B0),
-                            ],
-                            begin: Alignment.bottomLeft,
-                            end: Alignment.topRight,
-                          ),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const AccountSettingsScreen(),
                         ),
-                        child: CircleAvatar(
-                          radius: 56,
-                          backgroundColor: AppConstants.backgroundCanvas,
-                          child: CircleAvatar(
-                            radius: 53,
-                            backgroundImage: const NetworkImage(
-                              'https://lh3.googleusercontent.com/aida-public/AB6AXuCPrLUs5u0KMfYocr41nCLBAoFtdm5Ye7gGuM76ZLbJ6DXn8hiYtcVNK_vcojDeK6cOjU_c1vynmDADBj3yB1x0tNqmu3S1EyPWeRkAdX-VqGiQr0k2eV_G5pWEnmZN6tCBR3XFeH_HOFpLfbyRj1dY4X5KGlmNI8oPtqUDZHNszty5aeiJ4uJANwFeziBzti6Yl4mUz1qCR3QgR7Kbw_dalvjwAU6iTJLgZ_bQhZ7doYsTbmOusA',
+                      );
+                    },
+                    child: Stack(
+                      alignment: Alignment.bottomRight,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              colors: [
+                                AppConstants.primaryThemeColor,
+                                Color(0xFFDBC2B0),
+                              ],
+                              begin: Alignment.bottomLeft,
+                              end: Alignment.topRight,
                             ),
-                            child: null,
+                          ),
+                          child: AvatarHelper.buildAvatar(
+                            avatarPath: _currentUser?.avatarPath,
+                            name: userName,
+                            radius: 54,
                           ),
                         ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.all(2),
-                        decoration: const BoxDecoration(
-                          color: AppConstants.primaryThemeColor,
-                          shape: BoxShape.circle,
+                        Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: const BoxDecoration(
+                            color: AppConstants.primaryThemeColor,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.verified,
+                            color: Colors.white,
+                            size: 16,
+                          ),
                         ),
-                        child: const Icon(
-                          Icons.verified,
-                          color: Colors.white,
-                          size: 18,
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Alex Chen',
-                    style: TextStyle(
-                      fontSize: 26,
+                  const SizedBox(height: 14),
+
+                  // User Name
+                  Text(
+                    userName,
+                    style: const TextStyle(
+                      fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: AppConstants.primaryText,
                     ),
                   ),
+                  const SizedBox(height: 4),
+
+                  // User Email
+                  if (userEmail.isNotEmpty)
+                    Text(
+                      userEmail,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppConstants.secondaryText,
+                      ),
+                    ),
                   const SizedBox(height: 8),
+
+                  // Member Since Pill
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
@@ -215,16 +285,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        Icon(
+                      children: [
+                        const Icon(
                           Icons.calendar_today_outlined,
-                          size: 14,
+                          size: 13,
                           color: AppConstants.secondaryColor,
                         ),
-                        SizedBox(width: 6),
+                        const SizedBox(width: 6),
                         Text(
-                          'Member since 2023',
-                          style: TextStyle(
+                          memberSinceText,
+                          style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
                             color: AppConstants.secondaryColor,
@@ -233,6 +303,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ],
                     ),
                   ),
+
                 ],
               ),
             ),
@@ -274,16 +345,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         const SizedBox(height: 8),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Icon(
+                          children: [
+                            const Icon(
                               Icons.bolt,
                               color: AppConstants.primaryThemeColor,
                               size: 26,
                             ),
-                            SizedBox(width: 4),
+                            const SizedBox(width: 4),
                             Text(
-                              '12 Days',
-                              style: TextStyle(
+                              '$streakDays ${streakDays == 1 ? 'Day' : 'Days'}',
+                              style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
                                 color: AppConstants.primaryText,
@@ -330,16 +401,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         const SizedBox(height: 8),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Icon(
+                          children: [
+                            const Icon(
                               Icons.analytics_outlined,
                               color: AppConstants.primaryThemeColor,
                               size: 24,
                             ),
-                            SizedBox(width: 6),
+                            const SizedBox(width: 6),
                             Text(
-                              '14.2k',
-                              style: TextStyle(
+                              pointsDisplay,
+                              style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
                                 color: AppConstants.primaryText,
@@ -475,20 +546,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                     TextButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const FavoriteTopicsScreen(),
-                          ),
-                        );
-                      },
+                      onPressed: () {},
                       child: const Text(
-                        'See All',
+                        'View All',
                         style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
                           color: AppConstants.primaryThemeColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
                         ),
                       ),
                     ),
@@ -498,21 +562,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Column(
                   children: List.generate(_savedPosts.length, (index) {
                     final post = _savedPosts[index];
-                    final bool isSaved = post['isSaved'] as bool;
+                    final isSaved = post['isSaved'] as bool;
                     return Container(
                       margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.all(14),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: AppConstants.cardSurface,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: Colors.grey.shade200,
                         ),
-                        boxShadow: const [
+                        boxShadow: [
                           BoxShadow(
-                            color: Color(0x0F8D4B00),
+                            color: const Color(0x0F8D4B00),
                             blurRadius: 16,
-                            offset: Offset(0, 4),
+                            offset: const Offset(0, 4),
                           ),
                         ],
                       ),
