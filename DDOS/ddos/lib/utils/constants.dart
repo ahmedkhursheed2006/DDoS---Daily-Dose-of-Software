@@ -7,7 +7,10 @@ class AppConstants {
   // Android Emulator : 'http://10.0.2.2:3000/api'
   // iOS Simulator / Web : 'http://localhost:3000/api'
   // Physical Device  : 'http://<your-machine-LAN-IP>:3000/api'
-  static const String apiBaseUrl = 'http://10.0.2.2:3000/api';
+   static const String apiBaseUrl = String.fromEnvironment(
+    'API_URL',
+    defaultValue: 'http://10.0.2.2:3000/api',
+  );
 
   // PRIMARY COLORS (From Stitch Design System)
   static const Color primaryColor = Color(0xFFD97706); // Golden Amber - CTAs, buttons, active tabs
