@@ -1,33 +1,39 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../screens/explore/explore_screen.dart';
+import '../../screens/profile/profile_screen.dart';
 import '../home/screens/home_screen.dart';
 import '../home/screens/progress_screen.dart';
 import '../placeholder/coming_soon_screen.dart';
 
 class BottomNavShell extends StatefulWidget {
-  const BottomNavShell({super.key});
+  const BottomNavShell({super.key, this.initialIndex = 0});
+
+  final int initialIndex;
 
   @override
   State<BottomNavShell> createState() => _BottomNavShellState();
 }
 
 class _BottomNavShellState extends State<BottomNavShell> {
-  int _currentIndex = 0;
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+  }
 
   late final List<Widget> _screens = [
     const HomeScreen(),
-
-    const ComingSoonScreen(title: 'Explore', icon: Icons.explore_outlined),
-
+    const ExploreScreen(),
     const ComingSoonScreen(
       title: 'Daily Dose',
       icon: Icons.local_fire_department_outlined,
     ),
-
     const ProgressScreen(),
-
-    const ComingSoonScreen(title: 'Profile', icon: Icons.person_outline),
+    const ProfileScreen(),
   ];
 
   @override
@@ -66,6 +72,7 @@ class _BottomNavShellState extends State<BottomNavShell> {
             icon: Icon(Icons.home_outlined),
             activeIcon: Icon(Icons.home),
             label: 'Home',
+            
           ),
 
           BottomNavigationBarItem(

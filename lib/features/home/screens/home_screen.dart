@@ -213,28 +213,40 @@ class _HomeScreenState extends State<HomeScreen> {
                 if (_continueLearning.isNotEmpty) ...[
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const Text(
-                        'Continue Learning',
-                        style: AppTextStyles.heading1,
+                      const Flexible(
+                        child: Text(
+                          'Continue Learning',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.heading1,
+                        ),
                       ),
-
-                      Row(
-                        children: [
-                          Text(
-                            'View History',
-                            style: AppTextStyles.caption.copyWith(
-                              color: AppColors.primaryOrange,
-                            ),
+                      Flexible(
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  'View History',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: AppTextStyles.caption.copyWith(
+                                    color: AppColors.primaryOrange,
+                                  ),
+                                ),
+                              ),
+                              const Icon(
+                                Icons.chevron_right,
+                                size: 16,
+                                color: AppColors.primaryOrange,
+                              ),
+                            ],
                           ),
-
-                          const Icon(
-                            Icons.chevron_right,
-                            size: 16,
-                            color: AppColors.primaryOrange,
-                          ),
-                        ],
+                        ),
                       ),
                     ],
                   ),
