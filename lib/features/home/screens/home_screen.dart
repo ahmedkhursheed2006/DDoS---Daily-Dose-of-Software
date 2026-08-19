@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../models/progress_stats.dart';
+import '../../../services/feed_api_services.dart';
 
 import '../widgets/today_dose_card.dart';
 import '../widgets/continue_learning_card.dart';
@@ -27,6 +28,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   late List<RecommendedItem> _recommended;
 
+  final FeedApiService _feedApiService = FeedApiService();
+
   final bool _simulateEmptyFeed = false;
 
   @override
@@ -34,11 +37,9 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
 
     // ----------------------------------------------------------
-    // IMPORTANT:
-    // Create NEW growable lists.
+    // Load existing UI data first.
     //
-    // This prevents:
-    // Unsupported operation: indexed set
+    // This keeps the screen usable even if the API is unavailable.
     // ----------------------------------------------------------
 
     _feed = List<SeriesPost>.from(
@@ -54,6 +55,71 @@ class _HomeScreenState extends State<HomeScreen> {
     _recommended = List<RecommendedItem>.from(
       MockHomeRepository.getRecommended(),
     );
+
+    // Load Today's Dose from the backend.
+    _loadTodayFeed();
+  }
+
+  // ============================================================
+  // LOAD TODAY'S FEED FROM API
+  // ============================================================
+
+  Future<void> _loadTodayFeed() async {
+    try {
+      final data = await _feedApiService.getTodayFeed();
+
+      final posts = data['posts'];
+
+      if (posts is! List || posts.isEmpty) {
+        return;
+      }
+
+      final firstFeedItem = posts.first;
+
+      if (firstFeedItem is! Map) {
+        return;
+      }
+
+      final post = firstFeedItem['post'];
+
+      // Backend can return null when there is no post for a series.
+      if (post is! Map) {
+        return;
+      }
+
+      final apiPostId = post['id']?.toString();
+      final apiSeriesId = post['seriesId']?.toString();
+      final apiIsRead = post['read'] == true;
+
+      if (apiPostId == null) {
+        return;
+      }
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _feed = [
+          SeriesPost(
+            id: apiPostId,
+            seriesTitle: 'Series ${apiSeriesId ?? ''}',
+            postTitle: 'Post $apiPostId',
+            readTimeLabel: '5 min read',
+            difficultyLabel: 'Intermediate',
+            isRead: apiIsRead,
+          ),
+        ];
+      });
+
+      debugPrint(
+        'Today feed loaded successfully: '
+        'postId=$apiPostId, seriesId=$apiSeriesId, read=$apiIsRead',
+      );
+    } catch (e) {
+      // Keep the existing dummy feed if API is unavailable.
+      debugPrint('Failed to load today feed: $e');
+    }
   }
 
   // ============================================================
@@ -66,14 +132,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     final SeriesPost post = _feed.first;
-
-    // IMPORTANT:
-    //
-    // Do NOT use:
-    //
-    // _feed[0] = ...
-    //
-    // We replace the entire list instead.
 
     if (!post.isRead) {
       setState(() {
@@ -126,24 +184,19 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 480),
-
             child: ListView(
               physics: const BouncingScrollPhysics(),
-
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 30),
-
               children: [
                 // ==================================================
                 // HEADER
                 // ==================================================
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-
                   children: [
                     const Text(
                       'DDoS',
@@ -161,15 +214,12 @@ class _HomeScreenState extends State<HomeScreen> {
                             horizontal: 11,
                             vertical: 6,
                           ),
-
                           decoration: BoxDecoration(
                             color: AppColors.accentPeach,
                             borderRadius: BorderRadius.circular(20),
                           ),
-
                           child: const Row(
                             mainAxisSize: MainAxisSize.min,
-
                             children: [
                               Text('🔥', style: TextStyle(fontSize: 12)),
 
@@ -213,7 +263,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 if (_continueLearning.isNotEmpty) ...[
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-
                     children: [
                       const Text(
                         'Continue Learning',
@@ -243,20 +292,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   SizedBox(
                     height: 150,
-
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
-
                       physics: const BouncingScrollPhysics(),
-
                       itemCount: _continueLearning.length,
-
-                      separatorBuilder: (_, __) => const SizedBox(width: 12),
-
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(width: 12),
                       itemBuilder: (context, index) {
                         return ContinueLearningCard(
                           item: _continueLearning[index],
-
                           onResume: () {},
                         );
                       },
@@ -278,7 +322,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 RecommendedFeaturedCard(
                   item: _featured,
-
                   onTap: () {
                     _openRecommended(_featured.badge, _featured.title, '');
                   },
@@ -289,7 +332,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ..._recommended.map((item) {
                   return RecommendedListItem(
                     item: item,
-
                     onTap: () {
                       _openRecommended(
                         item.tag,
