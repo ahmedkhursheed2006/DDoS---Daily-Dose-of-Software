@@ -1,8 +1,9 @@
-import { Router } from "express";
-import { getSeries } from "../controllers/series.controller";
+import { Router } from 'express';
+import { getAllSeries, getSeriesById } from '../controllers/series.controller';
 
 const router = Router();
 
-router.get("/", getSeries);
+router.get('/', getAllSeries);
+router.get('/:id', getSeriesById);
 
 export default router;

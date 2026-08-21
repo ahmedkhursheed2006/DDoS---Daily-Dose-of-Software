@@ -1,39 +1,34 @@
-import express from "express";
-import cors from "cors";
-import seriesRoutes from "./routes/series.routes";
-import followRoutes from "./routes/follow.routes";
-import feedRoutes from "./routes/feed.routes";
-import authRoutes from "./routes/auth.routes";
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+dotenv.config();
+import authRoutes from './routes/auth.routes';
+import seriesRoutes from './routes/series.routes';
+import searchRoutes from './routes/search.routes';
+import socialRoutes from './routes/social.routes';
+import adminRoutes from './routes/admin.routes';
 
 const app = express();
-
-app.use(cors());
-app.use(express.json());
-
-app.use("/series", seriesRoutes);
-app.use("/series", followRoutes);
-app.use("/feed", feedRoutes);
-
-// Task 5 Auth routes
-app.use("/api/auth", authRoutes);
-
-app.get("/", (_req, res) => {
-  res.json({
-    message: "DDoS T6 Backend is running",
-  });
-});
-
-app.get("/api/health", (_req, res) => {
-  res.json({
-    status: "ok",
-    timestamp: new Date().toISOString(),
-  });
-});
-
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+app.use(cors({
+  origin: '*',
+  credentials: true,
+}));
+app.use(express.json());
+
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/series', seriesRoutes);
+app.use('/api/search', searchRoutes);
+app.use('/api/social', socialRoutes);
+app.use('/api/admin', adminRoutes);
+
+app.get('/health', (req, res) => {
+  res.json( { status: 'OK', timestamp: new Date() } );
 });
 
-export default app;
+app.listen(PORT, ()=> {
+  console.log(`Server running on port ${PORT}`);
+});
+// export default app;
