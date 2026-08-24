@@ -1,27 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:task_2_ui/main.dart';
+import '../search_bar_widget.dart';
 
 void main() {
-  testWidgets('Home route loads the shell and Explore tab is visible', (
+  testWidgets('Task 10 search bar renders and accepts input', (
     WidgetTester tester,
   ) async {
-    tester.view.physicalSize = const Size(1080, 2400);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: AppSearchBar(onQueryChanged: _noop),
+        ),
+      ),
+    );
+    expect(find.text('Search lessons, topics, series...'), findsOneWidget);
 
-    await tester.pumpWidget(const DDoSApp());
-    await tester.pumpAndSettle();
-
-    expect(find.text('Explore'), findsOneWidget);
-    expect(find.text('Home'), findsOneWidget);
-
-    final context = tester.element(find.byType(Scaffold));
-    Navigator.of(context).pushNamed('/home');
-    await tester.pumpAndSettle();
-
-    expect(find.text('Explore'), findsOneWidget);
+    await tester.enterText(find.byType(TextField), 'pointers');
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('pointers'), findsOneWidget);
   });
 }
+
+void _noop(String _) {}

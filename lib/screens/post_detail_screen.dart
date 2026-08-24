@@ -359,9 +359,9 @@ class _PostDetailScreenState extends State<PostDetailScreen>
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: _primaryTerracotta.withOpacity(0.2),
+                      color: _primaryTerracotta.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: _primaryTerracotta.withOpacity(0.4)),
+                      border: Border.all(color: _primaryTerracotta.withValues(alpha: 0.4)),
                     ),
                     child: Text(
                       "⚡ DAILY DOSE OF SOFTWARE",
@@ -747,7 +747,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
             Container(
               padding: const EdgeInsets.all(5),
               decoration: BoxDecoration(
-                color: _primaryTerracotta.withOpacity(0.12),
+                color: _primaryTerracotta.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(Icons.code_rounded, size: 16, color: _primaryTerracotta),
@@ -872,7 +872,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1C1917).withOpacity(0.85),
+                            color: const Color(0xFF1C1917).withValues(alpha: 0.85),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: const Row(
@@ -942,7 +942,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
                   margin: const EdgeInsets.only(bottom: 16),
                   padding: highlightColor != null ? const EdgeInsets.all(10) : EdgeInsets.zero,
                   decoration: BoxDecoration(
-                    color: highlightColor?.withOpacity(_currentTheme == ReaderTheme.oledDark ? 0.25 : 0.65),
+                    color: highlightColor?.withValues(alpha: _currentTheme == ReaderTheme.oledDark ? 0.25 : 0.65),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Column(
@@ -964,7 +964,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
                           decoration: BoxDecoration(
                             color: _cardBg,
                             borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: _primaryTerracotta.withOpacity(0.3)),
+                            border: Border.all(color: _primaryTerracotta.withValues(alpha: 0.3)),
                           ),
                           child: Row(
                             children: [
@@ -1008,7 +1008,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: _primaryTerracotta.withOpacity(0.12),
+                      color: _primaryTerracotta.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(Icons.verified_user_rounded, size: 20, color: _primaryTerracotta),
@@ -1052,7 +1052,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
                 border: Border.all(color: _borderSubtle),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
+                            color: Colors.black.withValues(alpha: 0.04),
                     blurRadius: 16,
                     offset: const Offset(0, 6),
                   ),
@@ -1136,7 +1136,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: _primaryTerracotta.withOpacity(0.12),
+                      color: _primaryTerracotta.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -1153,7 +1153,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
                   Text(
                     "Step #${currentPost.positionInSeries} of ${currentPost.totalSeriesSteps}",
                     style: TextStyle(
-                      color: _textBody.withOpacity(0.8),
+                      color: _textBody.withValues(alpha: 0.8),
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                     ),
@@ -1360,7 +1360,7 @@ class _EmbeddedAudioBarState extends State<_EmbeddedAudioBar> {
       decoration: BoxDecoration(
         color: widget.cardBg,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: widget.primaryColor.withOpacity(0.2)),
+        border: Border.all(color: widget.primaryColor.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1395,7 +1395,7 @@ class _EmbeddedAudioBarState extends State<_EmbeddedAudioBar> {
                     const SizedBox(height: 2),
                     Text(
                       "Real Speech • ${widget.durationText}",
-                      style: TextStyle(fontSize: 11, color: widget.textBody.withOpacity(0.8), fontWeight: FontWeight.w500),
+                      style: TextStyle(fontSize: 11, color: widget.textBody.withValues(alpha: 0.8), fontWeight: FontWeight.w500),
                     ),
                   ],
                 ),
@@ -1406,9 +1406,9 @@ class _EmbeddedAudioBarState extends State<_EmbeddedAudioBar> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: widget.primaryColor.withOpacity(0.1),
+                    color: widget.primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: widget.primaryColor.withOpacity(0.25)),
+                    border: Border.all(color: widget.primaryColor.withValues(alpha: 0.25)),
                   ),
                   child: Text(
                     "${_playbackSpeed}x",
@@ -1423,7 +1423,7 @@ class _EmbeddedAudioBarState extends State<_EmbeddedAudioBar> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
-                color: widget.primaryColor.withOpacity(0.08),
+                color: widget.primaryColor.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -1453,7 +1453,7 @@ class _EmbeddedAudioBarState extends State<_EmbeddedAudioBar> {
             child: LinearProgressIndicator(
               value: _progress.clamp(0.0, 1.0),
               minHeight: 3.5,
-              backgroundColor: widget.primaryColor.withOpacity(0.12),
+              backgroundColor: widget.primaryColor.withValues(alpha: 0.12),
               valueColor: AlwaysStoppedAnimation<Color>(widget.primaryColor),
             ),
           ),
@@ -1648,7 +1648,7 @@ class _EmbeddedQuizWidgetState extends State<_EmbeddedQuizWidget> {
         border: Border.all(color: const Color(0xFFEFE8DE)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),

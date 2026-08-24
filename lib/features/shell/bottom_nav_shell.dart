@@ -5,7 +5,7 @@ import '../../screens/explore/explore_screen.dart';
 import '../../screens/profile/profile_screen.dart';
 import '../home/screens/home_screen.dart';
 import '../home/screens/progress_screen.dart';
-import '../placeholder/coming_soon_screen.dart';
+import '../home/screens/daily_dose_screen.dart';
 
 class BottomNavShell extends StatefulWidget {
   const BottomNavShell({super.key, this.initialIndex = 0});
@@ -28,10 +28,7 @@ class _BottomNavShellState extends State<BottomNavShell> {
   late final List<Widget> _screens = [
     const HomeScreen(),
     const ExploreScreen(),
-    const ComingSoonScreen(
-      title: 'Daily Dose',
-      icon: Icons.local_fire_department_outlined,
-    ),
+    const DailyDoseScreen(),
     const ProgressScreen(),
     const ProfileScreen(),
   ];

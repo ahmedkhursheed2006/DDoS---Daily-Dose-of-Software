@@ -10,7 +10,7 @@ class NewsletterSection extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColors.accentPeach.withOpacity(0.5),
+        color: AppColors.accentPeach.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(

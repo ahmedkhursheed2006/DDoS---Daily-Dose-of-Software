@@ -82,7 +82,7 @@ class _DailyReminderWidgetState extends State<DailyReminderWidget> {
           children: [
             CircleAvatar(
               backgroundColor:
-                  Theme.of(context).colorScheme.primary.withOpacity(0.12),
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
               child: const Icon(Icons.notifications_active_outlined),
             ),
             const SizedBox(width: 12),

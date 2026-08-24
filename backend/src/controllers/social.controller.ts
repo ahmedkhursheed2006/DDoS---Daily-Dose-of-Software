@@ -3,7 +3,7 @@ import pool from '../config/database';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
 
 export const getCommentsByPost = async (req: AuthenticatedRequest, res: Response) => {
-  const { postId } = req.params;
+  const postId = req.params.postId ?? req.params.id;
 
   try {
     const result = await pool.query(
@@ -22,7 +22,8 @@ export const getCommentsByPost = async (req: AuthenticatedRequest, res: Response
 };
 
 export const addComment = async (req: AuthenticatedRequest, res: Response) => {
-  const { postId, content } = req.body;
+  const postId = req.params.id ?? req.body.postId;
+  const { content } = req.body;
   const userId = req.user?.id;
 
   if (!postId || !content) {
@@ -41,4 +42,28 @@ export const addComment = async (req: AuthenticatedRequest, res: Response) => {
   } catch (error) {
     res.status(500).json({ error: 'Failed to post comment' });
   }
+};
+
+export const updateComment = async (req: AuthenticatedRequest, res: Response) => {
+  const userId = req.user?.id;
+  const { id } = req.params;
+  const { content } = req.body;
+  if (!content?.trim()) return res.status(400).json({ error: 'Comment content is required' });
+
+  const result = await pool.query(
+    `UPDATE comments SET content = $1 WHERE id = $2 AND user_id = $3
+     RETURNING id, post_id as "postId", content, created_at as "createdAt"`,
+    [content.trim(), id, userId],
+  );
+  if (result.rowCount === 0) return res.status(404).json({ error: 'Comment not found' });
+  return res.json(result.rows[0]);
+};
+
+export const deleteComment = async (req: AuthenticatedRequest, res: Response) => {
+  const result = await pool.query(
+    'DELETE FROM comments WHERE id = $1 AND user_id = $2',
+    [req.params.id, req.user?.id],
+  );
+  if (result.rowCount === 0) return res.status(404).json({ error: 'Comment not found' });
+  return res.status(204).send();
 };

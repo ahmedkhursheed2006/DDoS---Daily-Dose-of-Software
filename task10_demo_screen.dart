@@ -5,10 +5,10 @@
 // isolation, independent of backend/auth work.
 
 import 'package:flutter/material.dart';
-import '../models/mock_data.dart';
-import '../widgets/search_bar_widget.dart';
-import '../widgets/category_filters.dart';
-import '../widgets/daily_reminder_widget.dart';
+import 'mock_data.dart';
+import 'search_bar_widget.dart';
+import 'category_filters.dart';
+import 'daily_reminder_widget.dart';
 
 class Task10DemoScreen extends StatefulWidget {
   const Task10DemoScreen({super.key});

@@ -18,6 +18,20 @@ The assigned frontend and authentication work has been completed, including inte
 
 ---
 
+## 📅 Weekly Changes & Deliverables
+
+### Summary of What Changed This Week:
+1. **API & JSON Connection:** Connected Program Listing (`ExploreScreen`, `HomeScreen`) and Program Details (`PostDetailScreen`) to live API endpoints (`/api/series`, `/api/posts/:id`) with fallback to 32 curated local JSON/Markdown program lessons in `ContentRepository`.
+2. **Interactive Forms & Client Validation:**
+   - **Registration Form (`SignupScreen`):** Full Name, Email, Password, Confirm Password with live validation (non-empty email, valid format with `@` & `.`, password >= 8 characters, password match check).
+   - **Login Form (`LoginScreen`):** Validated login flow connected to JWT authentication.
+   - **Feedback/Comment Form (`PostDetailScreen`):** Real-time community feedback & technical comment posting.
+   - **Repost Form (`ExploreScreen`):** Modal dialog with optional commentary for sharing posts.
+3. **Loading States & Error Handling:** Added smooth `CircularProgressIndicator` loading spinners, pull-to-refresh indicators, Dio exception handling for network timeouts/HTTP status codes, floating error SnackBars, retry views, and offline fallback support.
+4. **Documentation:** Created [CHANGELOG_DOCUMENTATION.md](file:///d:/DDoS%20-%20Daily%20Dose%20of%20Software/DDoS---Daily-Dose-of-Software/CHANGELOG_DOCUMENTATION.md) summarizing the weekly updates.
+
+---
+
 ### 1. 🎬 Splash Screen
 
 * Animated splash screen with staggered **fade-in + slide-up** effects

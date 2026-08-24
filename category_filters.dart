@@ -23,7 +23,7 @@ class CategoryFilters extends StatelessWidget {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: categories.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           final category = categories[index];
           final isSelected = category == selected;
@@ -40,7 +40,7 @@ class CategoryFilters extends StatelessWidget {
             ),
             selectedColor: Theme.of(context).colorScheme.primary,
             backgroundColor:
-                Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+                Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
             shape: StadiumBorder(
               side: BorderSide(
                 color: isSelected

@@ -1,9 +1,8 @@
-import { Request, Response } from "express";
-import { FollowService } from "../services/follow.service";
+import { Response } from 'express';
+import { FollowService } from '../services/follow.service';
+import { AuthenticatedRequest } from '../middleware/auth.middleware';
 
-const service = new FollowService();
-
-export const toggleFollow = async (req: Request, res: Response) => {
+export const toggleFollow = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const seriesId = Number(req.params.id);
 
@@ -13,12 +12,22 @@ export const toggleFollow = async (req: Request, res: Response) => {
       });
     }
 
-    // Temporary user ID until authentication middleware is connected.
-    const userId = 1;
+    if (!req.user?.id) {
+      return res.status(401).json({
+        message: "Unauthorized",
+      });
+    }
 
-    const result = await service.toggleFollow(userId, seriesId);
+    const userId = Number(req.user.id);
 
-    return res.json(result);
+    if (Number.isNaN(userId)) {
+      return res.status(400).json({
+        message: "Invalid user id",
+      });
+    }
+
+    const result = await new FollowService().toggleFollow(userId, seriesId);
+    return res.json({ following: result.following });
   } catch (error) {
     console.error(error);
 

@@ -7,6 +7,8 @@ import seriesRoutes from './routes/series.routes';
 import searchRoutes from './routes/search.routes';
 import socialRoutes from './routes/social.routes';
 import adminRoutes from './routes/admin.routes';
+import feedRoutes from './routes/feed.routes';
+import postRoutes from './routes/post.routes';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,12 +25,14 @@ app.use('/api/series', seriesRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/social', socialRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/feed', feedRoutes);
+app.use('/api/posts', postRoutes);
 
-app.get('/health', (req, res) => {
+app.get('/health', (_req, res) => {
   res.json( { status: 'OK', timestamp: new Date() } );
 });
 
 app.listen(PORT, ()=> {
   console.log(`Server running on port ${PORT}`);
 });
-// export default app;
+export default app;

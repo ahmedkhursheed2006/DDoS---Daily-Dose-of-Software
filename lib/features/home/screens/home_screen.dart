@@ -10,6 +10,7 @@ import '../widgets/newsletter_section.dart';
 import '../widgets/empty_state.dart';
 
 import 'post_detail_screen.dart';
+import '../../../services/feed_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -26,20 +27,15 @@ class _HomeScreenState extends State<HomeScreen> {
   late FeaturedRecommendation _featured;
 
   late List<RecommendedItem> _recommended;
+  bool _isLoading = true;
+  String? _loadError;
+  final FeedService _feedService = FeedService();
 
   final bool _simulateEmptyFeed = false;
 
   @override
   void initState() {
     super.initState();
-
-    // ----------------------------------------------------------
-    // IMPORTANT:
-    // Create NEW growable lists.
-    //
-    // This prevents:
-    // Unsupported operation: indexed set
-    // ----------------------------------------------------------
 
     _feed = List<SeriesPost>.from(
       MockHomeRepository.getTodaysFeed(simulateEmpty: _simulateEmptyFeed),
@@ -54,6 +50,24 @@ class _HomeScreenState extends State<HomeScreen> {
     _recommended = List<RecommendedItem>.from(
       MockHomeRepository.getRecommended(),
     );
+    _loadTodayFeed();
+  }
+
+  Future<void> _loadTodayFeed() async {
+    try {
+      final feed = await _feedService.getTodayFeed();
+      if (!mounted) return;
+      setState(() {
+        _feed = feed;
+        _isLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _loadError = 'Unable to load your daily feed.';
+      });
+    }
   }
 
   // ============================================================
@@ -113,9 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // ============================================================
 
   void _goToExplore() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Explore will be available soon.')),
-    );
+    Navigator.pushNamed(context, '/explore');
   }
 
   // ============================================================
@@ -200,7 +212,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 // ==================================================
                 // TODAY'S DOSE
                 // ==================================================
-                if (_feed.isEmpty)
+                if (_isLoading)
+                  const Center(child: CircularProgressIndicator())
+                else if (_loadError != null)
+                  Center(child: Text(_loadError!))
+                else if (_feed.isEmpty)
                   FeedEmptyState(onExplore: _goToExplore)
                 else
                   TodayDoseCard(post: _feed.first, onStart: _openTodayDose),
@@ -263,7 +279,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       itemCount: _continueLearning.length,
 
-                      separatorBuilder: (_, __) => const SizedBox(width: 12),
+                      separatorBuilder: (_, _) => const SizedBox(width: 12),
 
                       itemBuilder: (context, index) {
                         return ContinueLearningCard(

@@ -4,6 +4,7 @@ import '../../utils/constants.dart';
 import 'favorite_topics_screen.dart';
 import 'download_offline_screen.dart';
 import 'account_settings_screen.dart';
+import '../../services/feed_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -46,29 +47,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     },
   ];
 
-  final List<Map<String, dynamic>> _savedPosts = [
-    {
-      'id': '1',
-      'title': 'Understanding Async/Await in Dart & Flutter',
-      'tag': 'Dart / Flutter',
-      'readTime': '4 min read',
-      'isSaved': true,
-    },
-    {
-      'id': '2',
-      'title': 'SOLID Principles Simplified for Junior Developers',
-      'tag': 'Architecture',
-      'readTime': '6 min read',
-      'isSaved': true,
-    },
-    {
-      'id': '3',
-      'title': 'REST vs GraphQL: Key Differences & When to Use Which',
-      'tag': 'Backend API',
-      'readTime': '5 min read',
-      'isSaved': true,
-    },
-  ];
+  final List<Map<String, dynamic>> _savedPosts = [];
+  final FeedService _feedService = FeedService();
+  bool _savedPostsLoading = true;
 
   Future<void> _showLogoutDialog() async {
     final shouldLogout = await showDialog<bool>(
@@ -118,6 +99,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await AuthService.logout(); // clears token + user data
       if (!mounted) return;
       Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedPosts();
+  }
+
+  Future<void> _loadSavedPosts() async {
+    try {
+      final posts = await _feedService.getSavedPosts();
+      if (!mounted) return;
+      setState(() {
+        _savedPosts
+          ..clear()
+          ..addAll(posts.map((post) => {
+                'id': post['id']?.toString() ?? '',
+                'title': post['title']?.toString() ?? 'Untitled post',
+                'tag': post['seriesTitle']?.toString() ?? 'Saved post',
+                'readTime': '${post['readTimeMinutes'] ?? 5} min read',
+                'isSaved': true,
+              }));
+        _savedPostsLoading = false;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _savedPostsLoading = false);
     }
   }
 
@@ -495,8 +503,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                Column(
-                  children: List.generate(_savedPosts.length, (index) {
+                if (_savedPostsLoading)
+                  const Center(child: CircularProgressIndicator())
+                else if (_savedPosts.isEmpty)
+                  const Text(
+                    'No saved posts yet.',
+                    style: TextStyle(color: AppConstants.secondaryColor),
+                  )
+                else
+                  Column(
+                    children: List.generate(_savedPosts.length, (index) {
                     final post = _savedPosts[index];
                     final bool isSaved = post['isSaved'] as bool;
                     return Container(
@@ -588,8 +604,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ],
                       ),
                     );
-                  }),
-                ),
+                    }),
+                  ),
               ],
             ),
             const SizedBox(height: 24),

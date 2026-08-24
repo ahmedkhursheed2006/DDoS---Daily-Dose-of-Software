@@ -3,14 +3,21 @@ import pool from '../config/database';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
 
 export const createPost = async (req: AuthenticatedRequest, res: Response) => {
-  const { title, content, category, readTimeMinutes, seriesId } = req.body;
+  const { title, content, imageUrl, sourceReference, positionInSeries, readTimeMinutes, seriesId } = req.body;
+
+  if (!title || !content || !sourceReference?.trim() || !seriesId || !positionInSeries) {
+    return res.status(400).json({ error: 'title, content, seriesId, positionInSeries, and sourceReference are required' });
+  }
+  if (!Number.isInteger(readTimeMinutes) || readTimeMinutes < 1 || readTimeMinutes > 5) {
+    return res.status(400).json({ error: 'readTimeMinutes must be an integer between 1 and 5' });
+  }
 
   try {
     const result = await pool.query(
-      `INSERT INTO posts (title, content, category, read_time_minutes, series_id)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING id, title, content, category, read_time_minutes as "readTimeMinutes", series_id as "seriesId", created_at as "createdAt"`,
-      [title, content, category, readTimeMinutes || 3, seriesId || null]
+      `INSERT INTO posts (title, content, image_url, source_reference, position_in_series, read_time_minutes, series_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING id, title, content, image_url as "imageUrl", source_reference as "sourceReference", position_in_series as "positionInSeries", read_time_minutes as "readTimeMinutes", series_id as "seriesId", created_at as "createdAt"`,
+      [title, content, imageUrl || null, sourceReference.trim(), positionInSeries, readTimeMinutes, seriesId]
     );
 
     res.status(201).json({ data: result.rows[0] });

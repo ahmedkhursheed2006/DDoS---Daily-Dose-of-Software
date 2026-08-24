@@ -18,12 +18,12 @@ export const register = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'User with this email already exists.' });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 12);
     
     // Explicitly inserting defaults prevents SQL constraints violations
     const result = await pool.query(
       `INSERT INTO users (name, email, password, role, streak_days, concepts_mastered, accuracy) 
-       VALUES ($1, $2, $3, 'user', 0, 0, 0.0) 
+      VALUES ($1, $2, $3, 'LEARNER', 0, 0, 0.0)
        RETURNING id, name, email, role, streak_days, concepts_mastered, accuracy`,
       [name, email, hashedPassword]
     );
@@ -39,7 +39,7 @@ export const register = async (req: Request, res: Response) => {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role || 'user',
+        role: user.role || 'LEARNER',
         streakDays: user.streak_days ?? 0,
         conceptsMastered: user.concepts_mastered ?? 0,
         accuracy: isNaN(rawAccuracy) ? 0.0 : rawAccuracy
@@ -79,7 +79,7 @@ export const login = async (req: Request, res: Response) => {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role || 'user',
+        role: user.role || 'LEARNER',
         streakDays: user.streak_days ?? 0,
         conceptsMastered: user.concepts_mastered ?? 0,
         accuracy: isNaN(rawAccuracy) ? 0.0 : rawAccuracy

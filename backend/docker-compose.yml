@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: ddos-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 2001
+      POSTGRES_DB: ddos_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - ddos-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  ddos-postgres-data:

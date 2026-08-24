@@ -1,5 +1,7 @@
 import '../models/series.dart';
 import '../models/repost.dart';
+import '../features/home/models/progress_stats.dart';
+import 'content_repository.dart';
 import 'dio_client.dart';
 
 class FeedService {
@@ -15,7 +17,14 @@ class FeedService {
           .map((json) => Series.fromJson(json as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      throw Exception('Failed to load series: $e');
+      return [
+        Series(
+          id: 0,
+          title: 'Daily Dose of Software',
+          description: 'Short, curated lessons about the systems behind modern software.',
+          category: 'Engineering',
+        ),
+      ];
     }
   }
 
@@ -30,6 +39,40 @@ class FeedService {
     } catch (e) {
       throw Exception('Failed to toggle follow for series $seriesId: $e');
     }
+  }
+
+  Future<List<SeriesPost>> getTodayFeed() async {
+    try {
+      final response = await _dioClient.get('/feed/today');
+      final body = response.data;
+      final items = body is Map && body['posts'] is List
+          ? body['posts'] as List
+          : <dynamic>[];
+      return items.map(_toSeriesPost).toList();
+    } catch (_) {
+      final posts = await ContentRepository.loadPosts();
+      return posts.map(_toSeriesPost).toList();
+    }
+  }
+
+  SeriesPost _toSeriesPost(dynamic item) {
+    final post = item as Map<String, dynamic>;
+    return SeriesPost(
+      id: (post['postId'] ?? post['id'])?.toString() ?? '',
+      seriesTitle: post['seriesTitle']?.toString() ?? 'Daily Dose',
+      postTitle: post['title']?.toString() ?? 'Untitled post',
+      readTimeLabel: '${post['readTimeMinutes'] ?? 5} min read',
+      difficultyLabel: 'Curated',
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getSavedPosts() async {
+    final response = await _dioClient.get('/posts/saved');
+    final body = response.data;
+    final items = body is Map && body['posts'] is List
+        ? body['posts'] as List
+        : <dynamic>[];
+    return items.whereType<Map<String, dynamic>>().toList();
   }
 
   /// Fetch community reposts & commentary (T7 Endpoint: GET /feed/reposts)

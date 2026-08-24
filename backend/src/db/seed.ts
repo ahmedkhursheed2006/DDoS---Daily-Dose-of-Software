@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 
 async function seed() {
   try {
-    const hashedPassword = await bcrypt.hash('password123', 10);
+    const hashedPassword = await bcrypt.hash('password123', 12);
     
     await pool.query(`
       INSERT INTO users (name, email, password, role)
