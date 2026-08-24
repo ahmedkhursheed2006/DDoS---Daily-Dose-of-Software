@@ -12,6 +12,8 @@ import '../models/post.dart';
 import '../models/comment.dart';
 import '../services/social_service.dart';
 import '../widgets/comment_tile.dart';
+import '../services/offline_cache_service.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 enum ReaderTheme { warmPaper, sepiaKindle, oledDark }
 
@@ -34,6 +36,8 @@ class PostDetailScreen extends StatefulWidget {
 class _PostDetailScreenState extends State<PostDetailScreen>
     with TickerProviderStateMixin {
   late Post currentPost;
+  bool _isDownloaded = false;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _commentController = TextEditingController();
 
@@ -73,6 +77,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
   void initState() {
     super.initState();
     currentPost = widget.post;
+	_checkIfDownloaded();
 
     _scrollController.addListener(() {
       if (_scrollController.hasClients) {
@@ -102,7 +107,8 @@ class _PostDetailScreenState extends State<PostDetailScreen>
       CurvedAnimation(parent: _bookmarkAnimController, curve: Curves.easeOutBack),
     );
 
-    SocialService.markPostAsRead(currentPost.id);
+    _recordReadEventForCurrentPost();
+    _listenForConnectivity();
   }
 
   @override
@@ -111,6 +117,7 @@ class _PostDetailScreenState extends State<PostDetailScreen>
     _commentController.dispose();
     _likeAnimController.dispose();
     _bookmarkAnimController.dispose();
+    _connectivitySubscription?.cancel();
     super.dispose();
   }
 
@@ -228,6 +235,48 @@ class _PostDetailScreenState extends State<PostDetailScreen>
     );
 
     await SocialService.toggleSave(currentPost.id, !nextState);
+  }
+
+  Future<void> _checkIfDownloaded() async {
+    final downloaded = await OfflineCacheService.isPostDownloaded(currentPost.id);
+    if (mounted) {
+      setState(() => _isDownloaded = downloaded);
+    }
+  }
+
+  Future<void> _toggleDownload() async {
+    HapticFeedback.mediumImpact();
+    if (_isDownloaded) {
+      await OfflineCacheService.removePost(currentPost.id);
+    } else {
+      await OfflineCacheService.savePost(currentPost);
+    }
+    if (mounted) {
+      setState(() => _isDownloaded = !_isDownloaded);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_isDownloaded
+              ? "Downloaded for offline reading."
+              : "Removed from offline downloads."),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  Future<void> _recordReadEventForCurrentPost() async {
+    final results = await Connectivity().checkConnectivity();
+    final isOnline = !results.contains(ConnectivityResult.none);
+    await OfflineCacheService.recordReadEvent(currentPost.id, isOnline: isOnline);
+  }
+
+  void _listenForConnectivity() {
+    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((results) {
+      final isOnline = !results.contains(ConnectivityResult.none);
+      if (isOnline) {
+        OfflineCacheService.flushPendingReadEvents();
+      }
+    });
   }
 
   void _toggleFontScale() {
@@ -804,6 +853,15 @@ class _PostDetailScreenState extends State<PostDetailScreen>
               ),
               onPressed: _handleSave,
             ),
+          ),
+          IconButton(
+            tooltip: _isDownloaded ? "Remove offline download" : "Download for offline",
+            icon: Icon(
+              _isDownloaded ? Icons.download_done_rounded : Icons.download_for_offline_outlined,
+              color: _isDownloaded ? _primaryTerracotta : _textHeader,
+              size: 24,
+            ),
+            onPressed: _toggleDownload,
           ),
           const SizedBox(width: 4),
         ],
