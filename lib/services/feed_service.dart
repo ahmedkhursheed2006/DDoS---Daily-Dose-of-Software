@@ -1,7 +1,6 @@
 import '../models/series.dart';
 import '../models/repost.dart';
 import '../features/home/models/progress_stats.dart';
-import 'content_repository.dart';
 import 'dio_client.dart';
 
 class FeedService {
@@ -9,23 +8,12 @@ class FeedService {
 
   /// Fetch all series (T6 Endpoint: GET /series)
   Future<List<Series>> getSeries() async {
-    try {
-      final response = await _dioClient.get('/series');
-      final List<dynamic> data = response.data;
+    final response = await _dioClient.get('/series');
+    final List<dynamic> data = response.data;
 
-      return data
-          .map((json) => Series.fromJson(json as Map<String, dynamic>))
-          .toList();
-    } catch (e) {
-      return [
-        Series(
-          id: 0,
-          title: 'Daily Dose of Software',
-          description: 'Short, curated lessons about the systems behind modern software.',
-          category: 'Engineering',
-        ),
-      ];
-    }
+    return data
+        .map((json) => Series.fromJson(json as Map<String, dynamic>))
+        .toList();
   }
 
   /// Toggle follow/unfollow for a series (T6 Endpoint: POST /series/:id/follow)
@@ -42,17 +30,12 @@ class FeedService {
   }
 
   Future<List<SeriesPost>> getTodayFeed() async {
-    try {
-      final response = await _dioClient.get('/feed/today');
-      final body = response.data;
-      final items = body is Map && body['posts'] is List
-          ? body['posts'] as List
-          : <dynamic>[];
-      return items.map(_toSeriesPost).toList();
-    } catch (_) {
-      final posts = await ContentRepository.loadPosts();
-      return posts.map(_toSeriesPost).toList();
-    }
+    final response = await _dioClient.get('/feed/today');
+    final body = response.data;
+    final items = body is Map && body['posts'] is List
+        ? body['posts'] as List
+        : <dynamic>[];
+    return items.map(_toSeriesPost).toList();
   }
 
   SeriesPost _toSeriesPost(dynamic item) {
@@ -61,7 +44,7 @@ class FeedService {
       id: (post['postId'] ?? post['id'])?.toString() ?? '',
       seriesTitle: post['seriesTitle']?.toString() ?? 'Daily Dose',
       postTitle: post['title']?.toString() ?? 'Untitled post',
-      readTimeLabel: '${post['readTimeMinutes'] ?? 5} min read',
+      readTimeLabel: '${post['readTimeMinutes'] ?? post['read_time_minutes'] ?? 5} min read',
       difficultyLabel: 'Curated',
     );
   }

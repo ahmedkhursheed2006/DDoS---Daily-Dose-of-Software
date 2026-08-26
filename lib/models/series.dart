@@ -13,7 +13,7 @@ class Series {
 
   factory Series.fromJson(Map<String, dynamic> json) {
     return Series(
-      id: json['id'] as int,
+      id: int.parse(json['id'].toString()),
       title: json['title'] as String,
       description: json['description'] as String,
       category: json['category'] as String?,

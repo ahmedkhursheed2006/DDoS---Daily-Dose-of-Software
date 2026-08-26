@@ -31,15 +31,11 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _loadError;
   final FeedService _feedService = FeedService();
 
-  final bool _simulateEmptyFeed = false;
-
   @override
   void initState() {
     super.initState();
 
-    _feed = List<SeriesPost>.from(
-      MockHomeRepository.getTodaysFeed(simulateEmpty: _simulateEmptyFeed),
-    );
+    _feed = const [];
 
     _continueLearning = List<ContinueLearningItem>.from(
       MockHomeRepository.getContinueLearning(),
@@ -61,12 +57,13 @@ class _HomeScreenState extends State<HomeScreen> {
         _feed = feed;
         _isLoading = false;
       });
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
       setState(() {
         _isLoading = false;
         _loadError = 'Unable to load your daily feed.';
       });
+      debugPrint('[HomeScreen] Feed load error: $e');
     }
   }
 

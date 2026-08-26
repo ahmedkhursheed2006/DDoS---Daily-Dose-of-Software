@@ -5,8 +5,8 @@ import { toggleFollow } from '../controllers/follow.controller';
 
 const router = Router();
 
-router.get('/', getAllSeries);
-router.get('/:id', getSeriesById);
+router.get('/', authenticateToken, getAllSeries);
+router.get('/:id', authenticateToken, getSeriesById);
 router.post('/:id/follow', authenticateToken, toggleFollow);
 
 export default router;

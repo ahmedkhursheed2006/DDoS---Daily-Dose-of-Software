@@ -1,37 +1,28 @@
 import { Request, Response } from 'express';
-import pool from '../config/database';
+import { SeriesService } from '../services/series.service';
 
-export const getAllSeries = async (req: Request, res: Response) => {
+const seriesService = new SeriesService();
+
+export const getAllSeries = async (_req: Request, res: Response) => {
   try {
-    const result = await pool.query(`
-      SELECT s.*, COUNT(p.id)::int as "totalPosts"
-      FROM series s
-      LEFT JOIN posts p ON s.id = p.series_id
-      GROUP BY s.id
-      ORDER BY s.created_at DESC
-    `);
-    res.status(200).json(result.rows);
+    const series = await seriesService.getAllSeries();
+    res.status(200).json(series);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch series' });
   }
 };
 
 export const getSeriesById = async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const id = Number(req.params.id);
+  if (Number.isNaN(id)) {
+    return res.status(400).json({ error: 'Invalid series id' });
+  }
+
   try {
-    const seriesResult = await pool.query('SELECT * FROM series WHERE id = $1', [id]);
-    if (seriesResult.rows.length === 0) {
+    const series = await seriesService.getSeriesById(id);
+    if (!series) {
       return res.status(404).json({ error: 'Series not found' });
     }
-
-    const postsResult = await pool.query(
-      'SELECT id, title, content, category, read_time_minutes as "readTimeMinutes", created_at as "createdAt" FROM posts WHERE series_id = $1 ORDER BY created_at ASC',
-      [id]
-    );
-
-    const series = seriesResult.rows[0];
-    series.posts = postsResult.rows;
-
     res.status(200).json({ data: series });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch series details' });

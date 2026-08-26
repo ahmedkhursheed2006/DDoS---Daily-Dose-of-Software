@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../models/user.dart';
 import '../../services/auth_service.dart';
 import '../../utils/constants.dart';
 import 'favorite_topics_screen.dart';
@@ -15,6 +16,8 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _isWarmLightTheme = true;
+  User? _currentUser;
+  bool _isLoadingUser = true;
 
   final List<Map<String, dynamic>> _streakBadges = [
     {
@@ -105,7 +108,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
+    _loadUser();
     _loadSavedPosts();
+  }
+
+  Future<void> _loadUser() async {
+    final user = await AuthService.getUser();
+    if (mounted) {
+      setState(() {
+        _currentUser = user;
+        _isLoadingUser = false;
+      });
+    }
   }
 
   Future<void> _loadSavedPosts() async {
@@ -206,9 +220,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  const Text(
-                    'Alex Chen',
-                    style: TextStyle(
+                  Text(
+                    _isLoadingUser
+                        ? '...'
+                        : (_currentUser?.name.isNotEmpty == true
+                            ? _currentUser!.name
+                            : 'Learner'),
+                    style: const TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.bold,
                       color: AppConstants.primaryText,
